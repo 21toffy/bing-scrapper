@@ -1,10 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -52,10 +54,10 @@ var bingDomains = map[string]string{
 }
 
 type searchResult struct {
-	ResultRank  int
-	ResultUrl   string
-	ResultTitle string
-	ResultDesc  string
+	ResultRank  int    `json:"rank"`
+	ResultUrl   string `json:"url"`
+	ResultTitle string `json:"title"`
+	ResultDesc  string `json:"description"`
 }
 
 var userAgents = []string{
@@ -124,7 +126,7 @@ func scrapeClientRequest(searchURL string, proxyString interface{}) (*http.Respo
 	req.Header.Set("User-Agent", randomUserAgent())
 
 	res, err := baseClient.Do(req)
-
+	// fmt.Println(res, res.StatusCode, 1235)
 	if res.StatusCode != 200 {
 		err := fmt.Errorf("scrapper received a non-200 status code suggesting a ban")
 		return nil, err
@@ -208,20 +210,25 @@ func BingScrape(searchTearm, country string, proxyString interface{}, pages, cou
 		}
 		time.Sleep(time.Duration(backoff) * time.Second)
 	}
+	content, _ := json.Marshal(results)
+	os.WriteFile("data.json", content, 0644)
 	return results, nil
 
 }
 
 func main() {
 
-	res, err := BingScrape("angel", "com", nil, 2, 5, 30)
+	res, err := BingScrape("tofunmi okedeji", "com", nil, 7, 5, 5)
 
 	if err == nil {
 		for _, res := range res {
-			fmt.Println(res)
+			fmt.Println(res.ResultTitle + "...")
 		}
 	} else {
+		fmt.Println("err..................")
+
 		fmt.Println(err)
+
 	}
 
 }
